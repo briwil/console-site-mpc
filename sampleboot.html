@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Console with SampleBoot</title>
+<meta name="description" content="How to put Console and SampleBoot on the same SD card, so you can choose Console, the stock MPC app or another system at power-on.">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&amp;family=Barlow:ital,wght@0,400;0,500;0,600;1,500&amp;family=JetBrains+Mono:wght@500&amp;display=swap">
+<style>
+/* One calm product page: a short explanation, four steps that show how it works, a few feature cards, then install.
+   Palette: ink-violet near-black, warm paper text, orange for action, lilac for labels. */
+:root{
+  --bg:#0d0c11; --surface:#15141b; --surface2:#1c1b24; --line:#2a2833;
+  --fg:#ece8e2; --muted:#9a95a6; --orange:#f26b2d; --lilac:#b48ae6; --on-accent:#16110d;
+  --font-display:"Barlow Condensed","Arial Narrow",Impact,sans-serif;
+  --font-body:"Barlow",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --font-mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+  color-scheme:dark;
+}
+@media (prefers-color-scheme: light){
+  :root:not([data-theme="dark"]){
+    --bg:#f3f1f6; --surface:#ffffff; --surface2:#ebe8f1; --line:#d8d4e2;
+    --fg:#17151d; --muted:#5f5a6e; --orange:#c9490f; --lilac:#6b3fc0; --on-accent:#ffffff; color-scheme:light;
+  }
+}
+:root[data-theme="light"]{
+  --bg:#f3f1f6; --surface:#ffffff; --surface2:#ebe8f1; --line:#d8d4e2;
+  --fg:#17151d; --muted:#5f5a6e; --orange:#c9490f; --lilac:#6b3fc0; --on-accent:#ffffff; color-scheme:light;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:72px}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--font-body);font-size:18px;line-height:1.6;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+a{color:inherit}
+.wrap{max-width:1040px;margin:0 auto}
+h1,h2,h3{font-family:var(--font-display);text-wrap:balance;margin:0;line-height:1;text-transform:uppercase}
+p{margin:0}
+img{display:block;max-width:100%;height:auto}
+a:focus-visible,.btn:focus-visible,.copy:focus-visible{outline:2px solid var(--orange);outline-offset:3px;border-radius:2px}
+
+/* header */
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(8px);
+  margin-inline:calc(-1 * max(16px,env(safe-area-inset-left,0px)));padding-inline:max(16px,env(safe-area-inset-left,0px));border-bottom:1px solid var(--line)}
+header .wrap{display:flex;align-items:center;gap:24px;min-height:56px;flex-wrap:wrap}
+.mark{font-family:var(--font-display);font-weight:800;font-size:26px;letter-spacing:.06em;text-decoration:none;color:var(--orange)}
+nav{display:flex;gap:4px 22px;flex-wrap:wrap;margin-left:auto}
+nav a{font-family:var(--font-display);font-weight:600;font-size:17px;letter-spacing:.08em;text-transform:uppercase;text-decoration:none;color:var(--muted);padding:6px 0}
+nav a:hover,nav a:focus-visible{color:var(--fg)}
+
+/* buttons */
+.btns{display:flex;gap:12px;flex-wrap:wrap;margin-top:28px;align-items:center}
+.btn{font-family:var(--font-display);font-weight:700;font-size:20px;letter-spacing:.08em;text-transform:uppercase;text-decoration:none;padding:12px 22px;border:2px solid var(--orange);color:var(--orange);border-radius:3px}
+.btn.primary{background:var(--orange);color:var(--on-accent)}
+.ver{font-family:var(--font-mono);font-size:13px;color:var(--muted);margin-left:6px}
+
+/* hero */
+.hero{padding-block:64px 24px;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:48px;align-items:center}
+.eyebrow,.kicker{font-family:var(--font-mono);font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.kicker{color:var(--lilac)}
+.hero h1{font-weight:800;font-size:clamp(52px,7.4vw,96px);letter-spacing:.01em;margin-top:14px}
+.hero h1 span{color:var(--orange)}
+.lead{font-size:clamp(21px,2.5vw,28px);line-height:1.3;font-weight:500;margin-top:20px;max-width:24ch}
+.sub{color:var(--muted);margin-top:16px;max-width:46ch}
+@media (max-width:860px){.hero{grid-template-columns:minmax(0,1fr);gap:32px;padding-top:40px}}
+
+/* screens: the Sample's own display, shown crisp */
+.screen{margin:0}
+.screen img{width:100%;image-rendering:pixelated;border:1px solid var(--line);border-radius:8px;background:#000}
+.screen figcaption{font-family:var(--font-mono);font-size:13px;letter-spacing:.04em;color:var(--muted);margin-top:10px}
+
+/* quick facts */
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,140px),1fr));margin:40px 0 0;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--surface)}
+.facts div{padding:18px 22px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);margin:0 -1px -1px 0}
+.facts dt{font-family:var(--font-display);font-weight:800;font-size:52px;line-height:1;color:var(--orange)}
+.facts dd{margin:4px 0 0;font-family:var(--font-mono);font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+
+/* sections */
+section{padding-block:80px 0}
+section h2{font-weight:800;font-size:clamp(40px,6vw,68px);margin-top:10px;letter-spacing:.01em}
+.intro{max-width:56ch;margin-top:18px;color:var(--muted)}
+.intro + .intro{margin-top:12px}
+.intro strong{color:var(--fg);font-weight:600}
+.about{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,.8fr);gap:48px;align-items:center}
+@media (max-width:860px){.about{grid-template-columns:minmax(0,1fr);gap:28px}}
+
+/* how it works: one row per step, text beside the screens */
+.steps{list-style:none;margin:40px 0 0;padding:0;display:grid;gap:20px;counter-reset:s}
+.step{counter-increment:s;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:40px;align-items:center;
+  background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:32px}
+.step:nth-child(even) .step-text{order:2}
+.step-text::before{content:"0" counter(s);display:block;font-family:var(--font-display);font-weight:800;font-size:56px;line-height:.9;color:var(--orange);margin-bottom:14px}
+.step h3{font-weight:700;font-size:34px;letter-spacing:.02em}
+.step p{color:var(--muted);margin-top:12px}
+.shots{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr))}
+.shots.one{grid-template-columns:minmax(0,1fr)}
+@media (max-width:860px){.step{grid-template-columns:minmax(0,1fr);gap:24px;padding:24px}.step:nth-child(even) .step-text{order:0}}
+
+/* feature cards */
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:16px;margin-top:36px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:22px 24px}
+.card h3{font-weight:700;font-size:28px;letter-spacing:.02em}
+.card p{color:var(--muted);margin-top:10px;font-size:17px}
+
+/* install */
+.install{display:grid;gap:16px;margin-top:32px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:28px}
+.install h3{font-weight:700;font-size:30px}
+.install p{color:var(--muted)}
+.cmd{display:flex;gap:10px;align-items:flex-start;background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:12px 14px}
+.cmd code{font-family:var(--font-mono);font-size:13px;line-height:1.5;color:var(--fg);overflow-wrap:anywhere;min-width:0;flex:1;user-select:all}
+.copy{font-family:var(--font-display);font-weight:700;font-size:16px;letter-spacing:.08em;text-transform:uppercase;background:none;border:1px solid var(--orange);color:var(--orange);border-radius:3px;padding:4px 12px;cursor:pointer;flex:none}
+
+footer{margin-top:96px;border-top:1px solid var(--line);padding-block:36px 56px;color:var(--muted);font-size:15px}
+footer .wrap{display:grid;gap:10px}
+footer .mark{font-size:22px}
+
+.note{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--orange);border-radius:6px;padding:16px 20px;margin-top:28px}
+.note strong{color:var(--fg)}
+.tree{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:18px 22px;margin-top:20px;overflow-x:auto}
+.tree pre{margin:0;font-family:var(--font-mono);font-size:14px;line-height:1.7;color:var(--fg)}
+.tree em{color:var(--muted);font-style:normal}
+.list{padding-left:1.2em;color:var(--muted);max-width:60ch}
+.list li{margin-top:8px}.list strong{color:var(--fg);font-weight:600}
+.guide .steps{margin-top:28px}
+.guide .step{grid-template-columns:minmax(0,1fr);gap:0;padding:22px 26px}
+.guide .step-text::before{font-size:40px;margin-bottom:8px}
+.guide .step h3{font-size:28px}
+</style></head>
+<body>
+
+<header>
+  <div class="wrap">
+    <a class="mark" href="index.html">CONSOLE</a>
+    <nav aria-label="Sections">
+      <a href="index.html">Home</a><a href="index.html#install">Install</a><a href="manual.html">Manual</a>
+    </nav>
+  </div>
+</header>
+
+<main id="top" class="wrap guide">
+  <section style="padding-top:64px">
+    <div class="kicker">Guide</div>
+    <h2>Console with SampleBoot</h2>
+    <p class="intro"><a href="https://github.com/pxcm/SampleBoot">SampleBoot</a> is a boot menu for the MPC Sample. At power-on you choose which system starts: the stock MPC app, Console, or another custom system, all from one SD card. This page shows how to put Console on a SampleBoot card.</p>
+    <div class="note"><p><strong>Not yet tested on a device.</strong> This follows SampleBoot's own documentation for systems laid out like Console, but it hasn't been confirmed on a real Sample. If you try it, please tell us how it went.</p></div>
+  </section>
+
+  <section style="padding-top:48px">
+    <div class="kicker">What you need</div>
+    <ul class="list">
+      <li>An MPC Sample on <strong>firmware 1.3.0</strong>, the version SampleBoot supports.</li>
+      <li>An SD card and a computer to copy files.</li>
+      <li>The <a href="https://github.com/briwil/console-mpc/releases/latest/download/Console-MPC.zip">Console zip</a> (unzipped) and <a href="https://github.com/pxcm/SampleBoot">SampleBoot</a>.</li>
+    </ul>
+  </section>
+
+  <section style="padding-top:48px">
+    <div class="kicker">Steps</div>
+    <ol class="steps">
+      <li class="step"><div class="step-text"><h3>Set up SampleBoot</h3><p>Follow SampleBoot's own instructions: copy its <strong>autorun</strong> folder to the top level of the card. If the card already has Console's autorun folder, move it out of the way first.</p></div></li>
+      <li class="step"><div class="step-text"><h3>Add Console's folder</h3><p>Copy the <strong>Console</strong> folder from the Console zip to the top level of the card, as usual. Don't put it inside another folder.</p></div></li>
+      <li class="step"><div class="step-text"><h3>Add Console's autorun folder as a system</h3><p>Copy Console's <strong>autorun</strong> folder into <strong>autorun/mods/</strong> and rename it <strong>Console</strong>. That name is what appears in SampleBoot's menu.</p></div></li>
+      <li class="step"><div class="step-text"><h3>Add the marker file</h3><p>Inside <strong>autorun/mods/Console/</strong>, create an empty file called <strong>sampleboot.inplace</strong>. It tells SampleBoot that Console expects its own folder to sit at the top level of the card, which is how Console is laid out.</p></div></li>
+      <li class="step"><div class="step-text"><h3>Start the Sample</h3><p>Put the card in and switch on. Pick <strong>Console</strong> in SampleBoot's menu. Console's own start menu then appears as usual (PAD 1 for Console, PAD 2 for the stock MPC app).</p></div></li>
+    </ol>
+  </section>
+
+  <section style="padding-top:48px">
+    <div class="kicker">The finished card</div>
+    <div class="tree"><pre>SD card
+&#9500;&#9472; autorun/                    <em>SampleBoot</em>
+&#9474;  &#9500;&#9472; autorun.sh, autorun.json, autorun.check, sampleboot/
+&#9474;  &#9492;&#9472; mods/
+&#9474;     &#9492;&#9472; Console/              <em>Console's own autorun folder, renamed</em>
+&#9474;        &#9500;&#9472; autorun.sh, autorun.json, dev-ssh.sh
+&#9474;        &#9492;&#9472; sampleboot.inplace   <em>an empty file</em>
+&#9492;&#9472; Console/                     <em>Console's folder, at the top level</em></pre></div>
+  </section>
+
+  <section style="padding-top:48px">
+    <div class="kicker">Good to know</div>
+    <ul class="list">
+      <li><strong>Updating Console.</strong> Replace the Console folder at the top level, and Console's autorun folder inside <strong>mods/Console</strong>. If a replace removes <strong>sampleboot.inplace</strong>, add it again.</li>
+      <li><strong>Your songs.</strong> They stay in the ConsoleData folder on the card, which an update never touches.</li>
+      <li><strong>If something goes wrong.</strong> SampleBoot starts the stock app if a system doesn't start within 60 seconds. To bypass SampleBoot entirely, take the card out and rename its <strong>autorun</strong> folder to <strong>autorun-off</strong>. SampleBoot writes <strong>last-boot.log</strong>, and Console writes <strong>Console/install-status.txt</strong>, to help find the cause.</li>
+    </ul>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <a class="mark" href="index.html">CONSOLE</a>
+    <p>Console is not affiliated with or endorsed by SampleBoot, Akai Professional or inMusic. Use at your own risk.</p>
+  </div>
+</footer>
+</body></html>
