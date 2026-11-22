@@ -160,7 +160,18 @@ footer .mark{font-size:22px}
       <li class="step"><div class="step-text"><h3>Add Console's folder</h3><p>Copy the <strong>Console</strong> folder from the Console zip to the top level of the card, as usual. Don't put it inside another folder.</p></div></li>
       <li class="step"><div class="step-text"><h3>Add Console's autorun folder as a system</h3><p>Copy Console's <strong>autorun</strong> folder into <strong>autorun/mods/</strong> and rename it <strong>Console</strong>. That name is what appears in SampleBoot's menu.</p></div></li>
       <li class="step"><div class="step-text"><h3>Add the marker file</h3><p>Inside <strong>autorun/mods/Console/</strong>, create an empty file called <strong>sampleboot.inplace</strong>. It tells SampleBoot that Console expects its own folder to sit at the top level of the card, which is how Console is laid out.</p></div></li>
-      <li class="step"><div class="step-text"><h3>Start the Sample</h3><p>Put the card in and switch on. Pick <strong>Console</strong> in SampleBoot's menu. Console's own start menu then appears as usual (PAD 1 for Console, PAD 2 for the stock MPC app).</p></div></li>
+      <li class="step"><div class="step-text"><h3>Start the Sample</h3><p>Put the card in and switch on. Pick <strong>Console</strong> in SampleBoot's menu and Console starts. To leave it, press Shift + STOP: a small menu offers <strong>Back to MPC OS</strong>, <strong>Shut down</strong> or <strong>Cancel</strong>.</p></div></li>
+    </ol>
+  </section>
+
+  <section style="padding-top:48px">
+    <div class="kicker">Updating Console</div>
+    <p class="intro">An update is the new Console zip, copied over the old files. Console copies itself onto the Sample's internal drive the next time the Sample starts, so there is nothing else to install.</p>
+    <ol class="steps">
+      <li class="step"><div class="step-text"><h3>Download the new zip</h3><p>Get the latest <a href="https://github.com/briwil/console-mpc/releases/latest/download/Console-MPC.zip">Console zip</a> and unzip it. Switch the Sample off and put the card in your computer.</p></div></li>
+      <li class="step"><div class="step-text"><h3>Replace the Console folder</h3><p>Replace the <strong>Console</strong> folder at the top level of the card with the new one. This is the step that carries the new version.</p></div></li>
+      <li class="step"><div class="step-text"><h3>Replace Console's start files</h3><p>Copy the files from the zip's <strong>autorun</strong> folder (<strong>autorun.sh</strong>, <strong>autorun.json</strong>, <strong>dev-ssh.sh</strong>) into <strong>autorun/mods/Console/</strong>, replacing the old ones. Keep the empty <strong>sampleboot.inplace</strong> file there; add it again if it's gone. Don't touch SampleBoot's own files in <strong>autorun/</strong>.</p></div></li>
+      <li class="step"><div class="step-text"><h3>Eject and start</h3><p>Eject the card, put it in the Sample, switch on and pick <strong>Console</strong>. The first start after an update takes about a minute while Console installs itself; the screen says so.</p></div></li>
     </ol>
   </section>
 
@@ -179,7 +190,6 @@ footer .mark{font-size:22px}
   <section style="padding-top:48px">
     <div class="kicker">Good to know</div>
     <ul class="list">
-      <li><strong>Updating Console.</strong> Replace the Console folder at the top level, and Console's autorun folder inside <strong>mods/Console</strong>. If a replace removes <strong>sampleboot.inplace</strong>, add it again.</li>
       <li><strong>Your songs.</strong> They stay in the ConsoleData folder on the card, which an update never touches.</li>
       <li><strong>If something goes wrong.</strong> SampleBoot starts the stock app if a system doesn't start within 60 seconds. To bypass SampleBoot entirely, take the card out and rename its <strong>autorun</strong> folder to <strong>autorun-off</strong>. SampleBoot writes <strong>last-boot.log</strong>, and Console writes <strong>Console/install-status.txt</strong>, to help find the cause.</li>
     </ul>
